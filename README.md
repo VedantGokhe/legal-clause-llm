@@ -1,6 +1,6 @@
 # ⚖️ Legal Contract Clause Analyzer — NLU + NLG with Fine-Tuned LLM
 
-> **A fine-tuned 3B parameter LLM that reads legal contracts, classifies clause types (41 categories), assesses risk levels, and rewrites complex legal language in plain English** — achieving **100% risk assessment accuracy**, outperforming Gemini 2.5 Flash and Gemini 2.5 Pro on this metric, while running at **zero inference cost** and **7x faster response times**.
+> **A fine-tuned 3B parameter LLM that reads legal contracts, classifies clause types (41 categories), assesses risk levels, and rewrites complex legal language in plain English** — achieving **risk assessment accuracy comparable to Gemini 2.5 Flash and Pro**, while running at **zero inference cost** and **7x faster response times**.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red.svg)](https://pytorch.org/)
@@ -72,11 +72,11 @@ PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO SUCH LIABILITY.
 
 ## 🏆 Results & Benchmarks
 
-### Risk Assessment Accuracy: 100% — Outperforming Gemini 2.5
+### Risk Assessment: Competitive with Gemini 2.5 Flash & Pro
 
 | Metric | Our Model (3B) | Gemini 2.5 Flash | Gemini 2.5 Pro |
 |--------|:---:|:---:|:---:|
-| **Risk Level Accuracy** | **3/3 (100%)** ✅ | 2/3 (67%) | 2/3 (67%) |
+| **Risk Level Accuracy** | **3/3** ✅ | 2/3 | 2/3 |
 | **Valid JSON Output** | ✅ Always | ✅ Always | ✅ Always |
 | **Inference Speed** | **< 2 sec** | 4–8 sec | 8–15 sec |
 | **Cost per Query** | **$0.00** | ~$0.001 | ~$0.03 |
@@ -85,8 +85,8 @@ PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO SUCH LIABILITY.
 
 ### Key Achievements
 
-- **100% risk assessment accuracy** on benchmark clauses — the only model to correctly identify all HIGH risk clauses
-- Both Gemini 2.5 Flash and Pro incorrectly rated a **Cap On Liability** clause as MEDIUM risk when it should be HIGH — our fine-tuned model got it right
+- **Strong risk assessment accuracy** on benchmark clauses — correctly identified all HIGH risk clauses in our test set
+- Both Gemini 2.5 Flash and Pro incorrectly rated a **Cap On Liability** clause as MEDIUM risk when it should be HIGH — our fine-tuned model got it right, demonstrating the value of domain-specific fine-tuning
 - **7x faster** than Gemini 2.5 Pro, **4x faster** than Flash
 - **Zero inference cost** — runs entirely on-device without API calls
 - **Complete data privacy** — no contract text ever leaves your machine
@@ -291,9 +291,9 @@ train_legal_llm.ipynb (Google Colab T4)
        ▼
 evaluate_vs_gemini.py
   → Tested same 3 clauses on our model, Gemini Flash, Gemini Pro
-  → Our model: 100% risk accuracy (3/3)
-  → Gemini Flash: 67% risk accuracy (2/3)
-  → Gemini Pro: 67% risk accuracy (2/3)
+  → Our model: risk accuracy 3/3 on test clauses
+  → Gemini Flash: 2/3 on same test clauses
+  → Gemini Pro: 2/3 on same test clauses
 ```
 
 ### QLoRA Training Configuration
@@ -335,7 +335,7 @@ Full fine-tuning of 3B parameters requires ~36 GB VRAM. QLoRA (4-bit base + 16-b
 The model must learn **two skills**: (1) identifying when a clause IS present, and (2) correctly saying "not found" when it ISN'T. Without negative examples, the model would hallucinate clauses that don't exist in the contract. We used a 2:1 positive-to-negative ratio (11,180 : 5,590).
 
 ### Why Risk Assessment Matters Most
-Clause classification and key term extraction are useful, but **risk assessment is the most business-critical task**. A lawyer needs to know: "Should I worry about this clause?" Getting the risk level wrong (saying MEDIUM when it's HIGH) can have serious legal consequences. Our model achieves 100% accuracy on this metric.
+Clause classification and key term extraction are useful, but **risk assessment is the most business-critical task**. A lawyer needs to know: "Should I worry about this clause?" Getting the risk level wrong (saying MEDIUM when it's HIGH) can have serious legal consequences. Our fine-tuned model demonstrates strong accuracy on this critical metric, matching and exceeding larger models through domain specialization.
 
 ---
 
