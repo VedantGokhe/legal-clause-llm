@@ -1,0 +1,52 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Model files (large — hosted on HuggingFace)
+model/adapter_model.safetensors
+model/tokenizer.json
+model/*.zip
+model/README.md
+
+# Data files (large — auto-downloaded by scripts)
+data/data.zip
+data/cuad_raw/
+data/formatted/
+
+# Secrets — NEVER push these!
+gcp-key.json
+*.env
+.env
+
+# Internal planning docs
+plan_of_action.txt
+
+# Evaluation folder
+evaluation/
+
+# Empty folders
+app/
+
+# Utility scripts (not core)
+src/show_*.py
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Cache
+.cache/

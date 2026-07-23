@@ -1,0 +1,27 @@
+# Local dependencies (laptop - no GPU needed)
+# For training on Colab, see notebooks/train.ipynb
+
+# Data handling
+datasets>=2.19.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# API
+fastapi>=0.100.0
+uvicorn>=0.23.0
+
+# Demo UI
+streamlit>=1.30.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+tqdm>=4.65.0
+huggingface-hub>=0.20.0
+
+# For local inference (optional - if using Ollama API)
+httpx>=0.25.0
