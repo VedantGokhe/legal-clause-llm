@@ -309,9 +309,23 @@ Need to add industry-specific clause types? Support Indian contract law? Add Hin
 | **Financial** | Revenue/Profit Sharing, Minimum Commitment, Most Favored Nation, Liquidated Damages, Cap/Uncapped Liability, Insurance, Warranty Duration |
 | **IP & Licensing** | License Grant, Non-Transferable License, IP Ownership, Joint IP, Perpetual License, Affiliate Licenses, Source Code Escrow |
 | **Termination** | Termination For Convenience, Change Of Control, Post-Termination Services, ROFR/ROFO/ROFN |
-| **Legal** | Audit Rights, Covenant Not To Sue, Third Party Beneficiary, Competitive Restriction Exception |
+### 📥 How to Download & Prepare the Dataset
 
----
+You do not need to manually hunt for files. The automated scripts in `src/` download the raw CUAD dataset directly from The Atticus Project repository, extract it, and format it into instruction-tuning data:
+
+```bash
+# Step 1: Download raw CUAD dataset (data.zip ~13 MB) and extract to data/cuad_raw/
+python src/01_download_and_explore.py
+
+# Step 2: Convert SQuAD format into 16,270 chat instruction examples
+python src/02_format_dataset.py
+```
+
+* **Downloads:** Fetches `data.zip` containing 510 full contracts and 22,450 annotations.
+* **Outputs Generated:**
+  * `data/formatted/train.jsonl` (16,270 instruction-tuning examples)
+  * `data/formatted/val.jsonl` (500 validation examples)
+* **Pre-packaged Sample:** A sample of 20 formatted examples is included directly in [`data/sample_training_data.jsonl`](data/sample_training_data.jsonl) so you can inspect the data format immediately without downloading the full dataset.
 
 ## 🛠️ Tech Stack
 
