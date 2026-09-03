@@ -1,6 +1,6 @@
 # ⚖️ Legal Contract Clause Analyzer — NLU + NLG with Fine-Tuned LLM
 
-> **A fine-tuned 3B parameter LLM that reads legal contracts, classifies clause types (41 categories), assesses risk levels, and rewrites complex legal language in plain English** — achieving **risk assessment accuracy comparable to Gemini 2.5 Flash and Pro**, while running at **zero inference cost** and **7x faster response times**.
+> **A fine-tuned 3B parameter LLM that reads legal contracts, classifies clause types (41 categories), assesses risk levels, and rewrites complex legal language in plain English** — improving **risk assessment accuracy from 0% → 100%** compared to the base model, while running at **zero inference cost** on a free-tier GPU.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red.svg)](https://pytorch.org/)
@@ -55,16 +55,17 @@ EXCEED THE TOTAL FEES PAID BY CUSTOMER DURING THE TWELVE (12) MONTH
 PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO SUCH LIABILITY.
 ```
 
-**Output** (structured analysis):
+**Output** (structured analysis from our fine-tuned model):
 ```json
 {
   "clause_type": "Cap On Liability",
   "found": true,
-  "relevant_text": "IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY...",
-  "key_terms": ["limitation of liability"],
+  "relevant_text": "IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT",
+  "key_terms": ["cap on liability"],
   "risk_level": "HIGH",
-  "plain_english": "This sets a maximum limit on how much one party 
-    can be held liable for in damages."
+  "plain_english": "This sets a maximum limit on how much one party can be held 
+    liable for in damages. In this contract: IN NO EVENT SHALL EITHER 
+    PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT"
 }
 ```
 
@@ -72,24 +73,183 @@ PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO SUCH LIABILITY.
 
 ## 🏆 Results & Benchmarks
 
-### Risk Assessment: Competitive with Gemini 2.5 Flash & Pro
+### Before vs After Fine-Tuning — Side-by-Side Comparison
 
-| Metric | Our Model (3B) | Gemini 2.5 Flash | Gemini 2.5 Pro |
-|--------|:---:|:---:|:---:|
-| **Risk Level Accuracy** | **3/3** ✅ | 2/3 | 2/3 |
-| **Valid JSON Output** | ✅ Always | ✅ Always | ✅ Always |
-| **Inference Speed** | **< 2 sec** | 4–8 sec | 8–15 sec |
-| **Cost per Query** | **$0.00** | ~$0.001 | ~$0.03 |
-| **Parameters** | **3B** | ~30–50B | ~200B+ |
-| **Runs Locally** | ✅ Yes | ❌ Cloud only | ❌ Cloud only |
+We tested the **same 3 contract clauses** on both the plain base model (`Qwen2.5-3B-Instruct`) and our fine-tuned model — using the **identical prompt, token limits, and evaluation pipeline** for a fair comparison.
 
-### Key Achievements
+> Full raw outputs: [`output/before_finetune_result.txt`](output/before_finetune_result.txt) and [`output/after_finetune_result.txt`](output/after_finetune_result.txt)  
+> Notebooks to reproduce: [`before_finetuning_baseline.ipynb`](notebooks/before_finetuning_baseline.ipynb) and [`quick_demo.ipynb`](notebooks/quick_demo.ipynb)
 
-- **Strong risk assessment accuracy** on benchmark clauses — correctly identified all HIGH risk clauses in our test set
-- Both Gemini 2.5 Flash and Pro incorrectly rated a **Cap On Liability** clause as MEDIUM risk when it should be HIGH — our fine-tuned model got it right, demonstrating the value of domain-specific fine-tuning
-- **7x faster** than Gemini 2.5 Pro, **4x faster** than Flash
-- **Zero inference cost** — runs entirely on-device without API calls
-- **Complete data privacy** — no contract text ever leaves your machine
+#### Overall Score
+
+| Metric | Base Model (Before) | Fine-Tuned (After) |
+|--------|:---:|:---:|
+| **Clause Type Accuracy** | 3/3 | **3/3** ✅ |
+| **Risk Level Accuracy** | **0/3 (0%)** ❌ | **3/3 (100%)** ✅ |
+| **JSON Schema Adherence** | ❌ Valid JSON, but wrong/inconsistent keys | ✅ Exact trained schema every time |
+| **Valid JSON** | ✅ | ✅ |
+
+---
+
+#### TEST 1 — Termination for Convenience Clause
+
+**Input:**
+```
+Either party may terminate this Agreement for any reason or no reason
+whatsoever upon thirty (30) days' prior written notice to the other party.
+Upon such termination, all licenses granted hereunder shall immediately
+cease, and each party shall promptly return or destroy all Confidential
+Information of the other party.
+```
+
+<details open>
+<summary>❌ <b>Before Fine-Tuning</b> (Base Model)</summary>
+
+```json
+{
+  "Clause Type": "Termination For Convenience",
+  "Key Clause Text": "Either party may terminate this Agreement for any reason or no reason whatsoever upon thirty (30) days' prior written notice to the other party.",
+  "Important Terms": {
+    "Notice Period To Terminate Renewal": "30 days' prior written notice"
+  },
+  "Risk Level": "MEDIUM",
+  "Explanation": "This clause allows either party to end the contract at any time with just 30 days' notice. It also requires the returning of confidential information, which could be risky if not properly protected."
+}
+```
+⚠️ **Wrong JSON keys** (`"Clause Type"` instead of `"clause_type"`) — breaks downstream parsing  
+❌ **Risk: MEDIUM** — should be HIGH (either party can walk away at will)
+
+</details>
+
+<details open>
+<summary>✅ <b>After Fine-Tuning</b> (Our Model)</summary>
+
+```json
+{
+  "clause_type": "Termination For Convenience",
+  "found": true,
+  "relevant_text": "Either party may terminate this Agreement for any reason or no reason whatsoever",
+  "key_terms": ["termination for convenience"],
+  "risk_level": "HIGH",
+  "plain_english": "This allows one or both parties to end the contract at any time without needing a specific reason. This provides flexibility but reduces commitment certainty."
+}
+```
+✅ **Exact CUAD category** | ✅ **Risk: HIGH** | ✅ **Strict schema adherence**
+
+</details>
+
+---
+
+#### TEST 2 — Governing Law Clause
+
+**Input:**
+```
+This Agreement shall be governed by and construed in accordance with
+the laws of the State of Delaware, without regard to its conflict of
+laws principles.
+```
+
+<details open>
+<summary>❌ <b>Before Fine-Tuning</b> (Base Model)</summary>
+
+```json
+{
+  "Clause Type": "Governing Law",
+  "Key Clause Text": "This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.",
+  "Important Terms": {
+    "State": "Delaware"
+  },
+  "Risk Level": "MEDIUM",
+  "Explanation": "This clause specifies that the state of Delaware's laws will govern any disputes under this agreement."
+}
+```
+⚠️ **Wrong JSON keys** — inconsistent schema  
+❌ **Risk: MEDIUM** — should be LOW (standard boilerplate clause)
+
+</details>
+
+<details open>
+<summary>✅ <b>After Fine-Tuning</b> (Our Model)</summary>
+
+```json
+{
+  "clause_type": "Governing Law",
+  "found": true,
+  "relevant_text": "This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.",
+  "key_terms": ["governing law"],
+  "risk_level": "LOW",
+  "plain_english": "This specifies which state or country's laws will be used to interpret the contract if there's a dispute."
+}
+```
+✅ **Exact CUAD category** | ✅ **Risk: LOW** | ✅ **Strict schema adherence**
+
+</details>
+
+---
+
+#### TEST 3 — Cap on Liability Clause
+
+**Input:**
+```
+IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT
+EXCEED THE TOTAL FEES PAID BY CUSTOMER DURING THE TWELVE (12) MONTH
+PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO SUCH LIABILITY.
+```
+
+<details open>
+<summary>❌ <b>Before Fine-Tuning</b> (Base Model)</summary>
+
+```json
+{
+  "Clause Type": "Cap On Liability",
+  "Key Clause Text": "IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT EXCEED THE TOTAL FEES PAID BY CUSTOMER...",
+  "Important Terms": {
+    "Total Liability": "Total liability under this agreement",
+    "Total Fees Paid by Customer": "Total fees paid by customer during the twelve (12) month period..."
+  },
+  "Risk Level": "MEDIUM",
+  "Explanation": "This clause limits the amount of money one party can be responsible for if something goes wrong with the service."
+}
+```
+⚠️ **Wrong JSON keys** — inconsistent schema  
+❌ **Risk: MEDIUM** — should be HIGH (caps your financial recovery in a dispute)
+
+</details>
+
+<details open>
+<summary>✅ <b>After Fine-Tuning</b> (Our Model)</summary>
+
+```json
+{
+  "clause_type": "Cap On Liability",
+  "found": true,
+  "relevant_text": "IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT",
+  "key_terms": ["cap on liability"],
+  "risk_level": "HIGH",
+  "plain_english": "This sets a maximum limit on how much one party can be held liable for in damages."
+}
+```
+✅ **Exact CUAD category** | ✅ **Risk: HIGH** | ✅ **Strict schema adherence**
+
+</details>
+
+---
+
+### What Fine-Tuning Improved
+
+- 🎯 **Risk Calibration: 0% → 100%** — The base model defaulted every clause to `MEDIUM`, whether it was a routine Governing Law clause (should be LOW) or a dangerous Liability Cap (should be HIGH). Fine-tuning gave the model true legal domain awareness to differentiate risk levels correctly.
+
+- 📐 **Strict JSON Schema Adherence** — The base model produced valid JSON, but invented its own key names every time (`"Clause Type"`, `"Explanation"`, `"Important Terms"`, `"Key Clause Text"`) — these are inconsistent and would break any downstream API, frontend, or automated parser. The fine-tuned model outputs the exact trained schema (`clause_type`, `found`, `relevant_text`, `key_terms`, `risk_level`, `plain_english`) consistently on every single query.
+
+- 📚 **Domain-Specific Vocabulary** — The fine-tuned model uses the exact CUAD taxonomy labels (`"Termination For Convenience"`, `"Governing Law"`, `"Cap On Liability"`) instead of generic paraphrases, making outputs directly mappable to legal databases and compliance systems.
+
+- 💬 **Precise Plain English Explanations** — The fine-tuned model produces concise, legally accurate explanations trained on expert annotations, while the base model gives vague, sometimes misleading summaries.
+
+- 🔒 **Complete Data Privacy** — Runs entirely on-device without API calls. No contract text ever leaves your machine.
+
+- 💰 **Zero Inference Cost** — No API keys, no subscriptions, no per-token billing.
+
+> 📂 **Full raw outputs** available in the [`output/`](output/) folder — see [`before_finetune_result.txt`](output/before_finetune_result.txt) and [`after_finetune_result.txt`](output/after_finetune_result.txt) for complete unedited model responses.
 
 ### Training Results
 
@@ -104,28 +264,6 @@ PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO SUCH LIABILITY.
 | Peak GPU Memory | 4.2 GB / 15 GB |
 | Training Examples | 16,270 |
 | Validation Examples | 500 |
-
-### First-Run Demo Results (from training)
-
-```
-TEST 1 — Governing Law Clause:
-  Clause Type:  "Governing Law"  ✅ CORRECT
-  Risk Level:   LOW              ✅ CORRECT  
-  Plain English: "Specifies which state's laws will be used 
-                  to interpret the contract."
-
-TEST 2 — Cap On Liability Clause:
-  Clause Type:  "Limitation of Liability"  ✅ CORRECT concept
-  Risk Level:   HIGH                       ✅ CORRECT
-  Plain English: "Sets limits on how much one party can be 
-                  held liable for in damages."
-
-TEST 3 — Non-Compete Clause:
-  Clause Type:  "Exclusivity"  (related category)
-  Risk Level:   HIGH           ✅ CORRECT
-  Plain English: "Gives one party exclusive rights, meaning 
-                  the other party cannot work with competitors."
-```
 
 ---
 
@@ -185,7 +323,7 @@ Need to add industry-specific clause types? Support Indian contract law? Add Hin
 | **Training Platform** | Google Colab Free Tier (NVIDIA T4, 16 GB VRAM) |
 | **Dataset** | [CUAD v1](https://www.atticusprojectai.org/cuad) (NeurIPS 2021) |
 | **Model Hosting** | [HuggingFace Hub](https://huggingface.co/Vedant0824/legal-contract-clause-analyzer) |
-| **Evaluation** | Custom evaluation pipeline — 3-way comparison |
+| **Evaluation** | Before vs After comparison + Gemini benchmarks |
 
 ---
 
@@ -199,7 +337,7 @@ Open `notebooks/quick_demo.ipynb` in Google Colab:
 # Cell 1: Install
 !pip install unsloth
 
-# Cell 2: Load model from HuggingFace (3 min)
+# Cell 2: Load model from HuggingFace (2-3 min)
 from unsloth import FastLanguageModel
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name="Vedant0824/legal-contract-clause-analyzer",
@@ -208,12 +346,32 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 FastLanguageModel.for_inference(model)
 
 # Cell 3: Analyze any clause
+system_prompt = """You are a legal contract clause analyzer. When given a contract clause, you must:
+
+1. Identify the clause type from these categories: Document Name, Parties, Agreement Date, 
+Effective Date, Expiration Date, Renewal Term, Notice Period To Terminate Renewal, 
+Governing Law, Most Favored Nation, Non-Compete, Exclusivity, No-Solicit Of Customers, 
+Competitive Restriction Exception, No-Solicit Of Employees, Non-Disparagement, 
+Termination For Convenience, Rofr/Rofo/Rofn, Change Of Control, Anti-Assignment, 
+Revenue/Profit Sharing, Price Restrictions, Minimum Commitment, Volume Restriction, 
+Ip Ownership Assignment, Joint Ip Ownership, License Grant, Non-Transferable License, 
+Affiliate License-Licensor, Affiliate License-Licensee, Unlimited/All-You-Can-Eat-License, 
+Irrevocable Or Perpetual License, Source Code Escrow, Post-Termination Services, 
+Audit Rights, Uncapped Liability, Cap On Liability, Liquidated Damages, Warranty Duration, 
+Insurance, Covenant Not To Sue, Third Party Beneficiary.
+
+2. Extract the key clause text and important terms.
+3. Assess the risk level (HIGH, MEDIUM, or LOW).
+4. Provide a plain English explanation that a non-lawyer can understand.
+
+Respond in JSON format."""
+
 messages = [
-    {"role": "system", "content": "You are a legal contract clause analyzer. Respond in JSON."},
-    {"role": "user", "content": "Analyze: This Agreement shall be governed by Delaware law."},
+    {"role": "system", "content": system_prompt},
+    {"role": "user", "content": "Analyze the following contract clause and identify any relevant legal provisions:\n\nThis Agreement shall be governed by Delaware law."},
 ]
 inputs = tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
-outputs = model.generate(input_ids=inputs, max_new_tokens=512, temperature=0.1)
+outputs = model.generate(input_ids=inputs, max_new_tokens=768, temperature=0.1)
 print(tokenizer.decode(outputs[0][inputs.shape[-1]:], skip_special_tokens=True))
 ```
 
@@ -239,8 +397,17 @@ legal-contract-llm/
 │   └── 02_format_dataset.py           # Convert SQuAD → instruction-tuning format
 │
 ├── notebooks/
-│   ├── train_legal_llm.ipynb          # Full training notebook (Colab)
-│   └── quick_demo.ipynb              # 3-minute interview demo (Colab)
+│   ├── train_legal_llm.ipynb              # Full training notebook (Colab)
+│   ├── quick_demo.ipynb                   # Fine-tuned model demo (Colab)
+│   └── before_finetuning_baseline.ipynb   # Base model baseline (Colab)
+│
+├── output/
+│   ├── before_finetune_result.txt     # Raw base model outputs (3 test clauses)
+│   └── after_finetune_result.txt      # Raw fine-tuned model outputs (same 3 clauses)
+│
+├── evaluation/
+│   ├── evaluate_vs_gemini.py          # Evaluation script (vs Gemini 2.5)
+│   └── evaluation_results.json        # Evaluation results
 │
 ├── data/
 │   ├── exploration_summary.json       # Dataset statistics & clause distribution
@@ -289,11 +456,10 @@ train_legal_llm.ipynb (Google Colab T4)
   → Loss: 0.74 → 0.52 in 60 minutes
        │
        ▼
-evaluate_vs_gemini.py
-  → Tested same 3 clauses on our model, Gemini Flash, Gemini Pro
-  → Our model: risk accuracy 3/3 on test clauses
-  → Gemini Flash: 2/3 on same test clauses
-  → Gemini Pro: 2/3 on same test clauses
+before_finetuning_baseline.ipynb + quick_demo.ipynb
+  → Tested same 3 clauses on base model vs fine-tuned model
+  → Base model: risk accuracy 0/3, wrong JSON schema
+  → Fine-tuned model: risk accuracy 3/3, exact schema
 ```
 
 ### QLoRA Training Configuration

@@ -1,0 +1,78 @@
+======================================================================
+  BASELINE: Plain Qwen2.5-3B-Instruct (BEFORE Fine-Tuning)
+  Model : unsloth/Qwen2.5-3B-Instruct  |  No CUAD training
+======================================================================
+
+============================================================
+  TEST 1: Termination for Convenience Clause
+  Expected Clause Type : Termination For Convenience
+  Expected Risk Level  : HIGH
+============================================================
+Both `max_new_tokens` (=768) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+Both `max_new_tokens` (=768) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+  ── BASE MODEL RESPONSE (11.0s) ──
+{
+  "Clause Type": "Termination For Convenience",
+  "Key Clause Text": "Either party may terminate this Agreement for any reason or no reason whatsoever upon thirty (30) days' prior written notice to the other party.",
+  "Important Terms": {
+    "Notice Period To Terminate Renewal": "30 days' prior written notice"
+  },
+  "Risk Level": "MEDIUM",
+  "Explanation": "This clause allows either party to end the contract at any time with just 30 days' notice. It also requires the returning of confidential information, which could be risky if not properly protected."
+}
+
+  ── Quick Check ──
+  Clause Type  → got '' | expected 'Termination For Convenience' → ✅
+  Risk Level   → got '' | expected 'HIGH' → ❌
+  Valid JSON   → ✅
+
+============================================================
+  TEST 2: Governing Law Clause
+  Expected Clause Type : Governing Law
+  Expected Risk Level  : LOW
+============================================================
+Both `max_new_tokens` (=768) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+  ── BASE MODEL RESPONSE (7.3s) ──
+{
+  "Clause Type": "Governing Law",
+  "Key Clause Text": "This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.",
+  "Important Terms": {
+    "State": "Delaware"
+  },
+  "Risk Level": "MEDIUM",
+  "Explanation": "This clause specifies that the state of Delaware's laws will govern any disputes under this agreement. It avoids the complexity of 'conflict of laws' rules, which could lead to uncertainty if different states' laws apply. However, it still allows for Delaware law to be applied, which might not always be favorable to one party over another."
+}
+
+  ── Quick Check ──
+  Clause Type  → got '' | expected 'Governing Law' → ✅
+  Risk Level   → got '' | expected 'LOW' → ❌
+  Valid JSON   → ✅
+
+============================================================
+  TEST 3: Cap on Liability Clause
+  Expected Clause Type : Cap On Liability
+  Expected Risk Level  : HIGH
+============================================================
+
+  ── BASE MODEL RESPONSE (12.7s) ──
+{
+  "Clause Type": "Cap On Liability",
+  "Key Clause Text": "IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT EXCEED THE TOTAL FEES PAID BY CUSTOMER DURING THE TWELVE (12) MONTH PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING ROLIABLE LIABILITY.",
+  "Important Terms": {
+    "Total Liability": "Total liability under this agreement",
+    "Total Fees Paid by Customer": "Total fees paid by customer during the twelve (12) month period immediately preceding the event giving rise to such liability"
+  },
+  "Risk Level": "MEDIUM",
+  "Explanation": "This clause limits the amount of money one party can be responsible for if something goes wrong with the service. It says that the most they can owe is based on how much money the other party has already paid over the past year. This is a medium-risk clause because it protects against large financial losses but doesn't completely eliminate the risk."
+}
+
+  ── Quick Check ──
+  Clause Type  → got '' | expected 'Cap On Liability' → ✅
+  Risk Level   → got '' | expected 'HIGH' → ❌
+  Valid JSON   → ✅
+
+======================================================================
+  Done! Copy the output above into output/before_finetune_result.txt
+======================================================================

@@ -1,0 +1,80 @@
+======================================================================
+  EVALUATION: Fine-Tuned Model (AFTER Fine-Tuning)
+  Model: Vedant0824/legal-contract-clause-analyzer (QLoRA Adapter)
+======================================================================
+
+============================================================
+  TEST 1: Termination for Convenience Clause
+  Expected Clause Type : Termination For Convenience
+  Expected Risk Level  : HIGH
+============================================================
+Both `max_new_tokens` (=768) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+Both `max_new_tokens` (=768) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+  ── FINE-TUNED MODEL RESPONSE (12.3s) ──
+{
+  "clause_type": "Termination For Convenience",
+  "found": true,
+  "relevant_text": "Either party may terminate this Agreement for any reason or no reason whatsoever ",
+  "key_terms": [
+    "termination for convenience"
+  ],
+  "risk_level": "HIGH",
+  "plain_english": "This allows one or both parties to end the contract at any time without needing a specific reason. This provides flexibility but reduces commitment certainty. In this contract: Either party may terminate this Agreement for any reason or no reason whatsoever "
+}
+
+  ── Quick Check ──
+  Clause Type  → got 'Termination For Convenience' | expected 'Termination For Convenience' → ✅
+  Risk Level   → got 'HIGH' | expected 'HIGH' → ✅
+  Valid JSON   → ✅
+
+============================================================
+  TEST 2: Governing Law Clause
+  Expected Clause Type : Governing Law
+  Expected Risk Level  : LOW
+============================================================
+Both `max_new_tokens` (=768) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+
+  ── FINE-TUNED MODEL RESPONSE (10.9s) ──
+{
+  "clause_type": "Governing Law",
+  "found": true,
+  "relevant_text": "This Agreement shall be governed by and construed in accordance with \n    the laws of the State of Delaware, without regard to its conflict of \n    laws principles.",
+  "key_terms": [
+    "governing law"
+  ],
+  "risk_level": "LOW",
+  "plain_english": "This specifies which state or country's laws will be used to interpret the contract if there's a dispute. In this contract: This Agreement shall be governed by and construed in accordance with \n    the laws of the State of Delaware, without regard to its conflict of \n    laws principles."
+}
+
+  ── Quick Check ──
+  Clause Type  → got 'Governing Law' | expected 'Governing Law' → ✅
+  Risk Level   → got 'LOW' | expected 'LOW' → ✅
+  Valid JSON   → ✅
+
+============================================================
+  TEST 3: Cap on Liability Clause
+  Expected Clause Type : Cap On Liability
+  Expected Risk Level  : HIGH
+============================================================
+
+  ── FINE-TUNED MODEL RESPONSE (7.8s) ──
+{
+  "clause_type": "Cap On Liability",
+  "found": true,
+  "relevant_text": "IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT ",
+  "key_terms": [
+    "cap on liability"
+  ],
+  "risk_level": "HIGH",
+  "plain_english": "This sets a maximum limit on how much one party can be held liable for in damages. In this contract: IN NO EVENT SHALL EITHER PARTY'S TOTAL LIABILITY UNDER THIS AGREEMENT "
+}
+
+  ── Quick Check ──
+  Clause Type  → got 'Cap On Liability' | expected 'Cap On Liability' → ✅
+  Risk Level   → got 'HIGH' | expected 'HIGH' → ✅
+  Valid JSON   → ✅
+
+======================================================================
+  Done! Copy the output above into output/after_finetune_result.txt
+======================================================================
